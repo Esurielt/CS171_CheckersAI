@@ -1,8 +1,7 @@
-from random import randint
 from BoardClasses import Move
 from BoardClasses import Board
 import math
-
+import copy
 
 # The following part should be completed by students.
 # Students can modify anything except the class name and exisiting functions and varibles.
@@ -28,7 +27,7 @@ class StudentAI:
             self.board.make_move(move, self.opponent[self.color])
         else:
             self.color = 1
-        move = self.alpha_beta(self.board, 3, (Move([]), -math.inf), (Move([]), math.inf), True)[0]
+        move = self.alpha_beta(self.board, 2, (Move([]), -math.inf), (Move([]), math.inf), True)[0]
         return move
 
     def evaluate(self, board: Board):
@@ -47,15 +46,14 @@ class StudentAI:
         :param board: the Board being evaluate.
         :return: a int representing the heuristic
         """
-        coefficient = [1, -1][self.color-1]
-        population = 3*(board.black_count - board.white_count)
+        coefficient = [1, -1][self.color - 1]
+        population = 3 * (board.black_count - board.white_count)
         kingdom = self.kingdom_calc(board)
-        lords = 2*(kingdom[0] - kingdom[1])     # kings worth ~5
-        walls = 3*(kingdom[2] - kingdom[3])     # walls worth 7
-        return coefficient*(population + lords + walls)
+        lords = 2 * (kingdom[0] - kingdom[1])  # kings worth ~5
+        walls = 3 * (kingdom[2] - kingdom[3])  # walls worth 7
+        return coefficient * (population + lords + walls)
 
-
-    def alpha_beta(self, board: Board, depth: int, alpha: (Move,int), beta: (Move,int), max_player: bool):
+    def alpha_beta(self, board: Board, depth: int, alpha: (Move, int), beta: (Move, int), max_player: bool):
         """
         Traditional Alpha-Beta pruning.
         :param board: current board
@@ -66,43 +64,86 @@ class StudentAI:
         :return: best Move.
         """
         # initial call: alpha_beta(board, 3, (Move([]),-math.inf), (Move([]),math.inf), true)
+        def aux_move_assign(move1, move2, max_int):
+            """ Helper function to return best move in a tuple of (move, h)."""
+            if max_int * move1[1] > max_int * move2[1]:
+                return move1
+            else:
+                return move2
+
+        cached_board = ""
+
         if depth == 0 or board.is_win('B') or board.is_win('W'):
+            print("bottom")
             return Move([]), self.evaluate(board)
         if max_player:
-            max_h = -math.inf
-            for child in board.get_all_possible_moves(self.color):
-                board.make_move(child, self.colors_dict[self.color])
-                h = self.alpha_beta(board, depth - 1, alpha, beta, False)
-                max_h = max(max_h[1], h[1])
-                alpha = max(alpha, max_h[1])
-                if beta <= alpha:
-                    break
+            max_h = (Move([]), -math.inf)
+            moves = board.get_all_possible_moves(self.color)
+            print(moves)
+            for child in moves:
+                print(child)
+                if len(child) > 1:
+                    board.show_board()
+                    print("saving cache.")
+                    cached_board = copy.deepcopy()
+                for leaf in child:
+                    print(leaf)
+                    board.make_move(leaf, self.colors_dict[self.color])
+                    h = self.alpha_beta(board, depth - 1, alpha, beta, False)
+                    max_h = aux_move_assign(max_h, h, 1)
+                    alpha = aux_move_assign(alpha, max_h, 1)
+                    if beta[1] <= alpha[1]:
+                        break
+            if cached_board != "":
+                board.show_board()
+                print("loading cache.")
+                board = cached_board
+                board.show_board()
             return max_h
         else:
-            min_h = math.inf
-            for child in board.get_all_possible_moves(self.opponent[self.color]):
-                board.make_move(child, self.colors_dict[self.color])
-                h = self.alpha_beta(board, depth - 1, alpha, beta, True)
-                min_h = min(min_h[1], h[1])
-                beta = min(min_h[1], beta[1])
-                if beta <= alpha:
-                    break
+            min_h = (Move([]), math.inf)
+            moves = board.get_all_possible_moves(self.opponent[self.color])
+            print(moves)
+            for child in moves:
+                print(child)
+                if len(child) > 1:
+                    cached_board = copy.deepcopy(board)
+                for leaf in child:
+                    print(leaf)
+                    board.make_move(leaf, self.colors_dict[self.opponent[self.color]])
+                    h = self.alpha_beta(board, depth - 1, alpha, beta, True)
+                    min_h = aux_move_assign(min_h, h, -1)
+                    beta = aux_move_assign(beta, min_h, -1)
+                    if beta[1] <= alpha[1]:
+                        break
+            if cached_board != "":
+                board.show_board()
+                print("loading cache.")
+                board = cached_board
+                board.show_board()
             return min_h
 
     def kingdom_calc(self, board):
         """
         Count the Kings for the specific color.
         :param board: current board
-        :return: int tuple of (black_kings, white_kings, black_guards, white_guards)
+        :return: int tuple of
+        (black_kings, white_kings, black_guards, white_guards, black_population, white_population)
         """
         kingdoms = [0, 0, 0, 0]
-        colors_dict = {'B':0, 'W':1}
+        colors_dict = {'B': 0, 'W': 1}
         for r in range(board.row):
             for c in range(board.col):
                 checker = board.board[r][c]
-                if checker.is_king():
-                    kingdoms[colors_dict[checker.get_color()]] += 1
-                if (r == board.row - 1 or r == 0 or c == board.col - 1 or c == 0) \
-                        and checker.get_color() != ".":
-                    kingdoms[colors_dict[checker.get_color()+2]] += 1
+                if checker.get_color()!=".":
+                    index = colors_dict[checker.get_color()]
+                else:
+                    index = -1
+                if checker.is_king:
+                    kingdoms[index] += 1
+                if index != -1:
+                    # kingdoms[index + 4] += 1  # if needed, hand count the color of pieces.
+                    if r == board.row - 1 or r == 0 or c == board.col - 1 or c == 0:
+                        kingdoms[index + 2] += 1
+
         return tuple(kingdoms)
