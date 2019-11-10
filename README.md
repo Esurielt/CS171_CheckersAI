@@ -1,4 +1,5 @@
 # CS-171 Checkers Project
+Branch from https://gitlab.ics.uci.edu/ai-projects/Checkers_Student.git
 Current Version: 1.1.0.11052019
 # 10/28/2019
 Fixed a bug in **python** shell that Board parameter should be (col,row) instead of (row,col) 
