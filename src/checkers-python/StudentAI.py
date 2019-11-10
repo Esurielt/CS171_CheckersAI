@@ -3,10 +3,12 @@ from BoardClasses import Board
 import math
 import copy
 
+
 # The following part should be completed by students.
 # Students can modify anything except the class name and exisiting functions and varibles.
-class StudentAI:
 
+
+class StudentAI:
     def __init__(self, col, row, p):
         self.col = col
         self.row = row
@@ -16,6 +18,8 @@ class StudentAI:
         self.colors_dict = {1: 'B', 2: 'W'}
         self.opponent = {1: 2, 2: 1}
         self.color = 2
+        self.move = Move([])
+        # self.debug_tree = StudentAI.Node("root", [])
 
     def get_move(self, move):
         """
@@ -28,6 +32,7 @@ class StudentAI:
         else:
             self.color = 1
         move = self.alpha_beta(self.board, 2, (Move([]), -math.inf), (Move([]), math.inf), True)[0]
+        print("player decide", move)
         return move
 
     def evaluate(self, board: Board):
@@ -63,6 +68,7 @@ class StudentAI:
         :param max_player: whether the current color of players is the one being maxed
         :return: best Move.
         """
+
         # initial call: alpha_beta(board, 3, (Move([]),-math.inf), (Move([]),math.inf), true)
         def aux_move_assign(move1, move2, max_int):
             """ Helper function to return best move in a tuple of (move, h)."""
@@ -71,34 +77,31 @@ class StudentAI:
             else:
                 return move2
 
-        cached_board = ""
-
         if depth == 0 or board.is_win('B') or board.is_win('W'):
             print("bottom")
-            return Move([]), self.evaluate(board)
+            return self.evaluate(board)
         if max_player:
             max_h = (Move([]), -math.inf)
             moves = board.get_all_possible_moves(self.color)
+            # self.debug_tree.children = [ i for i in moves ]
             print(moves)
             for child in moves:
                 print(child)
-                if len(child) > 1:
-                    board.show_board()
-                    print("saving cache.")
-                    cached_board = copy.deepcopy()
+                pruned = False
                 for leaf in child:
                     print(leaf)
-                    board.make_move(leaf, self.colors_dict[self.color])
-                    h = self.alpha_beta(board, depth - 1, alpha, beta, False)
+                    board_new = copy.deepcopy(board)
+                    board_new.make_move(leaf, self.colors_dict[self.color])
+                    h = self.alpha_beta(board_new, depth - 1, alpha, beta, False)
                     max_h = aux_move_assign(max_h, h, 1)
-                    alpha = aux_move_assign(alpha, max_h, 1)
+                    alpha = aux_move_assign(alpha, h, 1)
                     if beta[1] <= alpha[1]:
+                        print("pruned from" + leaf)
+                        pruned = True
                         break
-            if cached_board != "":
-                board.show_board()
-                print("loading cache.")
-                board = cached_board
-                board.show_board()
+                if pruned and len(child) == 1:
+                    break
+            print(max_h)
             return max_h
         else:
             min_h = (Move([]), math.inf)
@@ -106,24 +109,24 @@ class StudentAI:
             print(moves)
             for child in moves:
                 print(child)
-                if len(child) > 1:
-                    cached_board = copy.deepcopy(board)
+                pruned = False
                 for leaf in child:
                     print(leaf)
-                    board.make_move(leaf, self.colors_dict[self.opponent[self.color]])
-                    h = self.alpha_beta(board, depth - 1, alpha, beta, True)
+                    board_new = copy.deepcopy(board)
+                    board_new.make_move(leaf, self.colors_dict[self.opponent[self.color]])
+                    h = self.alpha_beta(board_new, depth - 1, alpha, beta, True)
                     min_h = aux_move_assign(min_h, h, -1)
-                    beta = aux_move_assign(beta, min_h, -1)
+                    beta = aux_move_assign(beta, h, -1)
                     if beta[1] <= alpha[1]:
+                        print("pruned from" + str(leaf))
+                        pruned = True
                         break
-            if cached_board != "":
-                board.show_board()
-                print("loading cache.")
-                board = cached_board
-                board.show_board()
+                if pruned and len(child) == 1:
+                    break
+            print(min_h)
             return min_h
 
-    def kingdom_calc(self, board):
+    def kingdom_calc(self, board) -> tuple:
         """
         Count the Kings for the specific color.
         :param board: current board
@@ -135,7 +138,7 @@ class StudentAI:
         for r in range(board.row):
             for c in range(board.col):
                 checker = board.board[r][c]
-                if checker.get_color()!=".":
+                if checker.get_color() != ".":
                     index = colors_dict[checker.get_color()]
                 else:
                     index = -1
@@ -145,5 +148,18 @@ class StudentAI:
                     # kingdoms[index + 4] += 1  # if needed, hand count the color of pieces.
                     if r == board.row - 1 or r == 0 or c == board.col - 1 or c == 0:
                         kingdoms[index + 2] += 1
-
         return tuple(kingdoms)
+
+#     class Node:
+#         def __init__(self, value="root", children=[]):
+#             self.value = value
+#             self.children = children
+#
+#
+# def _debug_pprint_tree(node, file=None, _prefix="", _last=True):
+#     print(_prefix, "`- " if _last else "|- ", node, sep="", file=file)
+#     _prefix += "   " if _last else "|  "
+#     child_count = len(node)
+#     for i, child in enumerate(node.children):
+#         _last = i == (child_count - 1)
+#         pprint_tree(child, file, _prefix, _last)
