@@ -28,8 +28,7 @@ class StudentAI:
             self.board.make_move(move, self.opponent[self.color])
         else:
             self.color = 1
-        move = self.alpha_beta(self.board, 10, (Move([]), -math.inf), (Move([]), math.inf), True)[0]
-        print(move)
+        move = self.alpha_beta(self.board, 3, (Move([]), -math.inf), (Move([]), math.inf), True)[0]
         return move
 
     def evaluate(self, board: Board):
@@ -55,6 +54,7 @@ class StudentAI:
         walls = 3*(kingdom[2] - kingdom[3])     # walls worth 7
         return coefficient*(population + lords + walls)
 
+
     def alpha_beta(self, board: Board, depth: int, alpha: (Move,int), beta: (Move,int), max_player: bool):
         """
         Traditional Alpha-Beta pruning.
@@ -71,7 +71,6 @@ class StudentAI:
         if max_player:
             max_h = -math.inf
             for child in board.get_all_possible_moves(self.color):
-                print(child)
                 board.make_move(child, self.colors_dict[self.color])
                 h = self.alpha_beta(board, depth - 1, alpha, beta, False)
                 max_h = max(max_h[1], h[1])
@@ -97,7 +96,7 @@ class StudentAI:
         :return: int tuple of (black_kings, white_kings, black_guards, white_guards)
         """
         kingdoms = [0, 0, 0, 0]
-        colors_dict = {'B': 0, 'W': 1}
+        colors_dict = {'B':0, 'W':1}
         for r in range(board.row):
             for c in range(board.col):
                 checker = board.board[r][c]
