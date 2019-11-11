@@ -31,7 +31,7 @@ class StudentAI:
             self.board.make_move(move, self.opponent[self.color])
         else:
             self.color = 1
-        h = self.alpha_beta(self.board, 5, -math.inf, math.inf, True)
+        h = self.alpha_beta(self.board, 3, -math.inf, math.inf, True)
         # print("player decide", self.move)
         self.board.make_move(self.move, self.color)
         return self.move
@@ -52,7 +52,7 @@ class StudentAI:
         :param board: the Board being evaluate.
         :return: a int representing the heuristic
         """
-        c = {1: -1, 2: 1}[self.color]
+        c = {1: 1, 2: 11}[self.color]
         population = 3 * (board.black_count - board.white_count)
         kingdom = self.kingdom_calc(board)
         lords = 2 * (kingdom[0] - kingdom[1])  # kings worth ~5
