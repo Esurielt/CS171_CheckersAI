@@ -31,9 +31,10 @@ class StudentAI:
             self.board.make_move(move, self.opponent[self.color])
         else:
             self.color = 1
-        move = self.alpha_beta(self.board, 2, (Move([]), -math.inf), (Move([]), math.inf), True)[0]
-        print("player decide", move)
-        return move
+        h = self.alpha_beta(self.board, 2, -math.inf, math.inf, True)
+        print("player decide", self.move)
+        self.board.make_move(self.move, self.color)
+        return self.move
 
     def evaluate(self, board: Board):
         """
@@ -66,22 +67,23 @@ class StudentAI:
         :param alpha: max alpha value
         :param beta: min beta value
         :param max_player: whether the current color of players is the one being maxed
-        :return: best Move.
+        :return: eval
         """
 
         # initial call: alpha_beta(board, 3, (Move([]),-math.inf), (Move([]),math.inf), true)
-        def aux_move_assign(move1, move2, max_int):
-            """ Helper function to return best move in a tuple of (move, h)."""
-            if max_int * move1[1] > max_int * move2[1]:
-                return move1
-            else:
-                return move2
+        # def aux_move_assign(move1, move2, max_int):
+        #     """ Helper function to return best move in a tuple of (move, h)."""
+        #     if max_int * move1[1] > max_int * move2[1]:
+        #         return move1
+        #     else:
+        #         return move2
 
         if depth == 0 or board.is_win('B') or board.is_win('W'):
+            e = self.evaluate(board)
             print("bottom")
-            return self.evaluate(board)
+            return e
         if max_player:
-            max_h = (Move([]), -math.inf)
+            max_h = -math.inf
             moves = board.get_all_possible_moves(self.color)
             # self.debug_tree.children = [ i for i in moves ]
             print(moves)
@@ -89,14 +91,14 @@ class StudentAI:
                 print(child)
                 pruned = False
                 for leaf in child:
-                    print(leaf)
                     board_new = copy.deepcopy(board)
                     board_new.make_move(leaf, self.colors_dict[self.color])
                     h = self.alpha_beta(board_new, depth - 1, alpha, beta, False)
-                    max_h = aux_move_assign(max_h, h, 1)
-                    alpha = aux_move_assign(alpha, h, 1)
-                    if beta[1] <= alpha[1]:
-                        print("pruned from" + leaf)
+                    self.move = leaf
+                    max_h = max(max_h, h)
+                    alpha = max(alpha, h)
+                    if beta <= alpha:
+                        print("pruned from" + str(leaf))
                         pruned = True
                         break
                 if pruned and len(child) == 1:
@@ -104,7 +106,7 @@ class StudentAI:
             print(max_h)
             return max_h
         else:
-            min_h = (Move([]), math.inf)
+            min_h = math.inf
             moves = board.get_all_possible_moves(self.opponent[self.color])
             print(moves)
             for child in moves:
@@ -115,9 +117,11 @@ class StudentAI:
                     board_new = copy.deepcopy(board)
                     board_new.make_move(leaf, self.colors_dict[self.opponent[self.color]])
                     h = self.alpha_beta(board_new, depth - 1, alpha, beta, True)
-                    min_h = aux_move_assign(min_h, h, -1)
-                    beta = aux_move_assign(beta, h, -1)
-                    if beta[1] <= alpha[1]:
+                    self.move = leaf
+                    print("finished", self.move, h)
+                    min_h = min(min_h, h)
+                    beta = min(beta, h)
+                    if beta <= alpha:
                         print("pruned from" + str(leaf))
                         pruned = True
                         break
@@ -144,10 +148,8 @@ class StudentAI:
                     index = -1
                 if checker.is_king:
                     kingdoms[index] += 1
-                if index != -1:
-                    # kingdoms[index + 4] += 1  # if needed, hand count the color of pieces.
-                    if r == board.row - 1 or r == 0 or c == board.col - 1 or c == 0:
-                        kingdoms[index + 2] += 1
+                if index != -1 and (c == board.col - 1 or c == 0):
+                    kingdoms[index + 2] += 1
         return tuple(kingdoms)
 
 #     class Node:
