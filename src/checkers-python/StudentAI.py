@@ -52,12 +52,12 @@ class StudentAI:
         :param board: the Board being evaluate.
         :return: a int representing the heuristic
         """
-        coefficient = [-1, 1][self.color - 1]
+        c = {1: 1, 2: -1}[self.color]
         population = 3 * (board.black_count - board.white_count)
         kingdom = self.kingdom_calc(board)
-        lords = kingdom[0] - kingdom[1]  # kings worth ~5
-        walls = kingdom[2] - kingdom[3] # walls worth 4
-        return coefficient * (population + lords + walls)
+        lords = 2 * (kingdom[0] - kingdom[1])  # kings worth ~5
+        walls = kingdom[2] - kingdom[3]  # walls worth 4
+        return c * (population + lords + walls)
 
     def alpha_beta(self, board: Board, depth: int, alpha: (Move, int), beta: (Move, int), max_player: bool):
         """
@@ -89,7 +89,7 @@ class StudentAI:
                     h = self.alpha_beta(board_new, depth - 1, alpha, beta, False)
                     self.move = leaf
                     max_h = max(max_h, h)
-                    alpha = max(alpha, h)
+                    alpha = max(alpha, max_h)
                     if beta <= alpha:
                         # print("pruned from" + str(leaf))
                         pruned = True
@@ -113,7 +113,7 @@ class StudentAI:
                     self.move = leaf
                     # print("finished", self.move, h)
                     min_h = min(min_h, h)
-                    beta = min(beta, h)
+                    beta = min(beta, min_h)
                     if beta <= alpha:
                         # print("pruned from" + str(leaf))
                         pruned = True
