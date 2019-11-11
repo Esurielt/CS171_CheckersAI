@@ -31,7 +31,7 @@ class StudentAI:
             self.board.make_move(move, self.opponent[self.color])
         else:
             self.color = 1
-        h = self.alpha_beta(self.board, 5, -math.inf, math.inf, True)
+        h = self.alpha_beta(self.board, 4, -math.inf, math.inf, True)
         # print("player decide", self.move)
         self.board.make_move(self.move, self.color)
         return self.move
@@ -53,13 +53,13 @@ class StudentAI:
         :return: a int representing the heuristic
         """
         c = {1: 1, 2: -1}[self.color]
-        population = 3 * (board.black_count - board.white_count)
+        population = 4 * (board.black_count - board.white_count)
         kingdom = self.kingdom_calc(board)
-        lords = 2 * (kingdom[0] - kingdom[1])  # kings worth ~5
-        # walls = kingdom[2] - kingdom[3]  # walls worth 4
-        return c * (population + lords)# + walls)
+        lords = 2 * (kingdom[0] - kingdom[1])  # kings worth 6
+        walls = kingdom[self.color+1]  # walls worth 5
+        return c * (population + lords + walls)
 
-    def alpha_beta(self, board: Board, depth: int, alpha: (Move, int), beta: (Move, int), max_player: bool):
+    def alpha_beta(self, board: Board, depth: int, alpha: int, beta: int, max_player: bool):
         """
         Traditional Alpha-Beta pruning.
         :param board: current board
@@ -74,14 +74,14 @@ class StudentAI:
 
         if depth == 0 or board.is_win('B') or board.is_win('W'):
             e = self.evaluate(board)
-            # print("bottom")
+            print("bottom")
             return e
         if max_player:
             max_h = -math.inf
             moves = board.get_all_possible_moves(self.color)
-            # print(moves)
+            print(moves)
             for child in moves:
-                # print(child)
+                print(child)
                 pruned = False
                 for leaf in child:
                     board_new = copy.deepcopy(board)
@@ -91,19 +91,19 @@ class StudentAI:
                     max_h = max(max_h, h)
                     alpha = max(alpha, max_h)
                     if beta <= alpha:
-                        # print("pruned from" + str(leaf))
+                        print("pruned from" + str(leaf))
                         pruned = True
                         break
                 if pruned and len(child) == 1:
                     break
-            # print(max_h)
+            print(max_h)
             return max_h
         else:
             min_h = math.inf
             moves = board.get_all_possible_moves(self.opponent[self.color])
-            # print(moves)
+            print(moves)
             for child in moves:
-                # print(child)
+                print(child)
                 pruned = False
                 for leaf in child:
                     # print(leaf)
@@ -111,16 +111,16 @@ class StudentAI:
                     board_new.make_move(leaf, self.colors_dict[self.opponent[self.color]])
                     h = self.alpha_beta(board_new, depth - 1, alpha, beta, True)
                     self.move = leaf
-                    # print("finished", self.move, h)
+                    print("finished", self.move, h)
                     min_h = min(min_h, h)
                     beta = min(beta, min_h)
                     if beta <= alpha:
-                        # print("pruned from" + str(leaf))
+                        print("pruned from" + str(leaf))
                         pruned = True
                         break
                 if pruned and len(child) == 1:
                     break
-            # print(min_h)
+            print(min_h)
             return min_h
 
     def kingdom_calc(self, board) -> tuple:
