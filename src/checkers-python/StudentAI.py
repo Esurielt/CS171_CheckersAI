@@ -52,7 +52,7 @@ class StudentAI:
         :param board: the Board being evaluate.
         :return: a int representing the heuristic
         """
-        coefficient = [1, -1][self.color - 1]
+        coefficient = [-1, 1][self.color - 1]
         population = 3 * (board.black_count - board.white_count)
         kingdom = self.kingdom_calc(board)
         lords = 2 * (kingdom[0] - kingdom[1])  # kings worth ~5
