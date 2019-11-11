@@ -32,7 +32,7 @@ class StudentAI:
         else:
             self.color = 1
         h = self.alpha_beta(self.board, 2, -math.inf, math.inf, True)
-        print("player decide", self.move)
+        # print("player decide", self.move)
         self.board.make_move(self.move, self.color)
         return self.move
 
@@ -71,24 +71,17 @@ class StudentAI:
         """
 
         # initial call: alpha_beta(board, 3, (Move([]),-math.inf), (Move([]),math.inf), true)
-        # def aux_move_assign(move1, move2, max_int):
-        #     """ Helper function to return best move in a tuple of (move, h)."""
-        #     if max_int * move1[1] > max_int * move2[1]:
-        #         return move1
-        #     else:
-        #         return move2
 
         if depth == 0 or board.is_win('B') or board.is_win('W'):
             e = self.evaluate(board)
-            print("bottom")
+            # print("bottom")
             return e
         if max_player:
             max_h = -math.inf
             moves = board.get_all_possible_moves(self.color)
-            # self.debug_tree.children = [ i for i in moves ]
-            print(moves)
+            # print(moves)
             for child in moves:
-                print(child)
+                # print(child)
                 pruned = False
                 for leaf in child:
                     board_new = copy.deepcopy(board)
@@ -98,36 +91,36 @@ class StudentAI:
                     max_h = max(max_h, h)
                     alpha = max(alpha, h)
                     if beta <= alpha:
-                        print("pruned from" + str(leaf))
+                        # print("pruned from" + str(leaf))
                         pruned = True
                         break
                 if pruned and len(child) == 1:
                     break
-            print(max_h)
+            # print(max_h)
             return max_h
         else:
             min_h = math.inf
             moves = board.get_all_possible_moves(self.opponent[self.color])
-            print(moves)
+            # print(moves)
             for child in moves:
-                print(child)
+                # print(child)
                 pruned = False
                 for leaf in child:
-                    print(leaf)
+                    # print(leaf)
                     board_new = copy.deepcopy(board)
                     board_new.make_move(leaf, self.colors_dict[self.opponent[self.color]])
                     h = self.alpha_beta(board_new, depth - 1, alpha, beta, True)
                     self.move = leaf
-                    print("finished", self.move, h)
+                    # print("finished", self.move, h)
                     min_h = min(min_h, h)
                     beta = min(beta, h)
                     if beta <= alpha:
-                        print("pruned from" + str(leaf))
+                        # print("pruned from" + str(leaf))
                         pruned = True
                         break
                 if pruned and len(child) == 1:
                     break
-            print(min_h)
+            # print(min_h)
             return min_h
 
     def kingdom_calc(self, board) -> tuple:
