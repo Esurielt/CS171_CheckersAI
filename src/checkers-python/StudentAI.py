@@ -56,8 +56,8 @@ class StudentAI:
         population = 3 * (board.black_count - board.white_count)
         kingdom = self.kingdom_calc(board)
         lords = 2 * (kingdom[0] - kingdom[1])  # kings worth ~5
-        walls = kingdom[2] - kingdom[3]  # walls worth 4
-        return c * (population + lords + walls)
+        # walls = kingdom[2] - kingdom[3]  # walls worth 4
+        return c * (population + lords)# + walls)
 
     def alpha_beta(self, board: Board, depth: int, alpha: (Move, int), beta: (Move, int), max_player: bool):
         """
