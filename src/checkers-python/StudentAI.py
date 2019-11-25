@@ -6,7 +6,7 @@ import copy
 
 # The following part should be completed by students.
 # Students can modify anything except the class name and exisiting functions and varibles.
-
+# Todo: Dynamically distribute depth according to time limit.
 
 class StudentAI:
     def __init__(self, col, row, p):
@@ -31,8 +31,7 @@ class StudentAI:
             self.board.make_move(move, self.opponent[self.color])
         else:
             self.color = 1
-        h = self.alpha_beta(self.board, 3, -math.inf, math.inf, True)
-        # print("player decide", self.move)
+        h = self.alpha_beta(self.board, 5, -math.inf, math.inf, True)
         self.board.make_move(self.move, self.color)
         return self.move
 
@@ -52,12 +51,15 @@ class StudentAI:
         :param board: the Board being evaluate.
         :return: a int representing the heuristic
         """
-        c = {1: 1, 2: 11}[self.color]
+        if self.color == 1:
+            c = 1
+        else:
+            c = -1
         population = 3 * (board.black_count - board.white_count)
         kingdom = self.kingdom_calc(board)
         lords = 2 * (kingdom[0] - kingdom[1])  # kings worth ~5
-        # walls = kingdom[2] - kingdom[3]  # walls worth 4
-        return c * (population + lords)# + walls)
+        walls = kingdom[2] - kingdom[3]  # walls worth 4
+        return int(c) * (population + lords + walls)
 
     def alpha_beta(self, board: Board, depth: int, alpha: (Move, int), beta: (Move, int), max_player: bool):
         """
@@ -131,18 +133,21 @@ class StudentAI:
         (black_kings, white_kings, black_guards, white_guards, black_population, white_population)
         """
         kingdoms = [0, 0, 0, 0]
-        colors_dict = {'B': 0, 'W': 1}
+        # colors_dict = {'B': 0, 'W': 1}
         for r in range(board.row):
             for c in range(board.col):
                 checker = board.board[r][c]
                 if checker.get_color() != ".":
-                    index = colors_dict[checker.get_color()]
-                else:
-                    index = -1
-                if checker.is_king:
-                    kingdoms[index] += 1
-                if index != -1 and (c == board.col - 1 or c == 0):
-                    kingdoms[index + 2] += 1
+                    if checker.is_king:
+                        if checker.get_color() == 'B':
+                            kingdoms[0] += 1
+                        else:
+                            kingdoms[1] += 1
+                    if c == board.col - 1 or c == 0:
+                        if checker.get_color() == 'B':
+                            kingdoms[2] += 1
+                        else:
+                            kingdoms[3] += 1
         return tuple(kingdoms)
 
 #     class Node:
